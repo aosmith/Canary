@@ -19,7 +19,8 @@ func MessageServer(ws *websocket.Conn) {
     n := 0
     n, err := ws.Read(msg)
     if err != nil {
-      fmt.Println("Error reading from websocket")
+      fmt.Println("Error reading from websocket, this means the client probably disconnected.  Killing thread!")
+      break;
     } else if n > 0 {
       clientId := string(msg)
       message := <- MessageChannel
