@@ -6,6 +6,7 @@ import (
   "canary"
   "fmt"
   "net/http"
+  "encoding/json"
 )
 
 var MessageChannel = make(chan canary.Message)
@@ -19,13 +20,16 @@ func MessageServer(ws *websocket.Conn) {
     n := 0
     n, err := ws.Read(msg)
     if err != nil {
+      LogChannel <- err.Error()
       fmt.Println("Error reading from websocket, this means the client probably disconnected.  Killing thread!")
       break;
     } else if n > 0 {
-      clientId := string(msg)
+      LogChannel <- string(msg)
+      var authenticationSet canary.AuthenticationSet
+      err = json.UnMarshal(string(msg), &authenticationSet)
       message := <- MessageChannel
-      if message.DestinationId == clientId {
-        //ws.Write(byte(message))
+      if message.DestinationId == authenticationSet.DeviceId{
+        ws.Write(byte(json.Marshal(message)))
       }
     }
   }
